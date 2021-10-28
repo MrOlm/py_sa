@@ -1,3 +1,6 @@
+import os
+import py_sa
+
 def make_Preprocess_command(sample, reads_prefix, reads, out_loc, **kwargs):
     """
     echo "Preprocessing Hadza_MoBio_H_A_1_1111 ..." 2>&1 | tee -a AEGEA.log
@@ -181,7 +184,7 @@ def make_drep_command(results_dir, **kwargs):
         genome_list_loc = genome_list_base + str(uuid.uuid4())
 
         print(f"Creating genome list on aws at {genome_list_loc}")
-        store_s3_file2(genome_list_loc, ('\n'.join(genome_list) + '\n').encode('ascii'))
+        py_sa.store_s3_file2(genome_list_loc, ('\n'.join(genome_list) + '\n').encode('ascii'))
 
         cmd_substr = f' --genome_list {genome_list_loc} '
 
