@@ -63,7 +63,7 @@ def submit_aegea_job(cmd, expected_output, rdb=None, alocation=None, verbose=Fal
     return ID
 
 
-def load_running_aegea(queue="novome_spot", tries=20, verbose=True):
+def load_running_aegea(queue="", tries=20, verbose=True):
     """
     Return a list of running aegea jobs
 
