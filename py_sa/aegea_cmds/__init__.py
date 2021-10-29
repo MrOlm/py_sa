@@ -629,7 +629,7 @@ def make_inStrain_command(bam_loc, fasta_loc, s3_store_folder, **kwargs):
         cores, ram, cmd, image, queue)
 
     # Get result
-    result = s3_store_folder + IS_name + '/raw_data/Rdic.pickle'.format(IS_name)
+    result = s3_store_folder + IS_name + '/raw_data/Rdic.json'.format(IS_name)
     if command == 'quick_profile':
         result = s3_store_folder + IS_name + '/coverm_raw.tsv'.format(IS_name)
 
