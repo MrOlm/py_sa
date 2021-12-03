@@ -51,3 +51,63 @@ for bam in py_sa.get_matching_s3_keys('czbiohub-microbiome', 'Sonnenburg_Lab/Inf
     print(cmd)
     break
 ```
+
+# Example deeparg
+```
+import py_sa
+import py_sa.aegea_cmds
+
+import importlib
+importlib.reload(py_sa)
+
+def make_deeparg_cmd(read1, read2, outname, s3_store_folder, **kwargs):
+    '''
+    Version 1.0 - 12.1.2021
+    '''
+    # Get s3 arguments
+    bucket_id = kwargs.get('bucket_id', "czbiohub-microbiome")
+    image = kwargs.get('image', 'sonnenburglab/deeoarg:MO_dev')
+    queue = kwargs.get('queue', 'sonnenburg__spot100')
+    ret_result = kwargs.get('ret_result', False)
+    wrap_cmd = kwargs.get('wrap_cmd', True)
+
+    # Get aegea arguments
+    ram = kwargs.get('ram', 32000)
+    cores = kwargs.get('cores', 6)
+
+    # Generate the base command
+    cmd = f"""
+        ./prepare.sh;
+        conda activate work;
+       ./run_deeparg.py
+       --r1 {read1}
+       --r2 {read2}
+       --outname {outname}
+       --results_directory {s3_store_folder}
+       """.replace('\n', ' ')
+
+    # Remove variable length whitespace
+    cmd = ' '.join(cmd.split())
+
+    # Wrap in aegea
+    t = ""
+    if wrap_cmd:
+        cmd = f"aegea batch submit --queue {queue} --image {image} --storage /mnt=500 --vcpus {cores} --memory {ram} {t} --command=\"{cmd}\" &>> AEGEA.log"
+
+    result = f"{s3_store_folder}{outname}.clean.deeparg.mapping.ARG.merged.quant.type"
+
+    if ret_result:
+        return cmd, result
+
+    else:
+        return cmd
+    
+
+rdb = py_sa.load_running_aegea()
+s3_store_folder = 's3://czbiohub-microbiome/Sonnenburg_Lab/Project_Vital/DeepArg/'
+
+for i, row in Pdb.iterrows():
+    cmd, result = make_deeparg_cmd(row['read1'], row['read2'], row['sample'], 
+                            s3_store_folder, ret_result=True)
+    py_sa.submit_aegea_job(cmd, result, verbose=True, rdb=rdb)
+```

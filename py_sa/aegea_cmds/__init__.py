@@ -73,6 +73,49 @@ def make_Preprocess_command(sample, reads_prefix, reads, out_loc, **kwargs):
         return cmd
 
 
+def make_deeparg_cmd(read1, read2, outname, s3_store_folder, **kwargs):
+    '''
+    Version 1.0 - 12.1.2021
+    '''
+    # Get s3 arguments
+    bucket_id = kwargs.get('bucket_id', "czbiohub-microbiome")
+    image = kwargs.get('image', 'sonnenburglab/deeoarg:MO_dev')
+    queue = kwargs.get('queue', 'sonnenburg__spot100')
+    ret_result = kwargs.get('ret_result', False)
+    wrap_cmd = kwargs.get('wrap_cmd', True)
+
+    # Get aegea arguments
+    ram = kwargs.get('ram', 32000)
+    cores = kwargs.get('cores', 6)
+
+    # Generate the base command
+    cmd = f"""
+        ./prepare.sh;
+        conda activate work;
+       ./run_deeparg.py
+       --r1 {read1}
+       --r2 {read2}
+       --outname {outname}
+       --results_directory {s3_store_folder}
+       """.replace('\n', ' ')
+
+    # Remove variable length whitespace
+    cmd = ' '.join(cmd.split())
+
+    # Wrap in aegea
+    t = ""
+    if wrap_cmd:
+        cmd = f"aegea batch submit --queue {queue} --image {image} --storage /mnt=500 --vcpus {cores} --memory {ram} {t} --command=\"{cmd}\" &>> AEGEA.log"
+
+    result = f"{s3_store_folder}{outname}.clean.deeparg.mapping.ARG.merged.quant.type"
+
+    if ret_result:
+        return cmd, result
+
+    else:
+        return cmd
+
+
 def make_GTDB_command(genome_loc, out_loc, **kwargs):
     """
     aegea batch submit --queue microbiome-lhighPriority --image sonnenburglab/gtdb:latest --storage /mnt=500 --memory 128000 --vcpus 16 --command="export genomes=s3://czbiohub-microbiome/Sonnenburg_Lab/bmerrill/200527_GTDBTK_Analysis/test/; export s3OutputPath=s3://czbiohub-microbiome/Sonnenburg_Lab/bmerrill/200527_GTDBTK_Analysis/test_results/; export coreNum=16; export binExtension=fa; run_gtdb.sh
