@@ -2,6 +2,12 @@
 
 py_sa is a way to interact with aegea and s3 through python
 
+# Installation:
+
+```
+pip install pysa-aws
+```
+
 # Example mapping
 
 ```angular2html
